@@ -1,16 +1,10 @@
-# This is a sample Python script.
+from modules.core import calculate_basic_metrics
+from modules.core import FinancialEngine
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+metrics = calculate_basic_metrics(user)
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+ratios = FinancialEngine.calculate_ratios(metrics)
+emergency = FinancialEngine.emergency_fund_coverage(user, metrics)
+fire_number = FinancialEngine.calculate_fire_number(metrics["annual_expenses"])
+projection = FinancialEngine.project_net_worth(metrics["net_worth"], metrics["savings"])
+stress = FinancialEngine.calculate_stress_index(metrics, emergency["status"])
