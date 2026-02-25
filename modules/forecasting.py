@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 from typing import Dict, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # =====================================================
@@ -18,7 +21,10 @@ def forecast_expenses(df: pd.DataFrame) -> Dict[str, Any]:
     - Forecast quality score
     """
 
+    logger.debug("Starting expense forecast")
+
     if df.empty or "date" not in df.columns or "expenses" not in df.columns:
+        logger.warning("Insufficient data for forecasting")
         return _empty_forecast()
 
     df = df.copy()
@@ -29,6 +35,7 @@ def forecast_expenses(df: pd.DataFrame) -> Dict[str, Any]:
     df = df.dropna(subset=["date"]).sort_values("date")
 
     if df.empty:
+        logger.warning("No valid dates after cleaning")
         return _empty_forecast()
 
     # -------------------------------------------------
@@ -43,8 +50,8 @@ def forecast_expenses(df: pd.DataFrame) -> Dict[str, Any]:
     daily["date"] = pd.to_datetime(daily["date"])
     daily = daily.sort_values("date")
 
-    # Require at least 7 days of data
     if len(daily) < 7:
+        logger.info("Not enough daily data for forecasting")
         return _empty_forecast(min_data=True)
 
     # -------------------------------------------------
@@ -95,7 +102,7 @@ def forecast_expenses(df: pd.DataFrame) -> Dict[str, Any]:
         trend_multiplier=trend_multiplier
     )
 
-    return {
+    result = {
         "next_week": round(next_week, 2),
         "next_month": round(next_month, 2),
         "trend_multiplier": round(trend_multiplier, 3),
@@ -104,6 +111,9 @@ def forecast_expenses(df: pd.DataFrame) -> Dict[str, Any]:
         "confidence": round(confidence, 2),
         "forecast_quality": quality
     }
+
+    logger.debug(f"Forecast result: {result}")
+    return result
 
 
 # =====================================================

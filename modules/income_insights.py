@@ -1,6 +1,10 @@
 import numpy as np
 from typing import List, Dict, Any
+import logging
+
 from .core import MonthlyLogEntry
+
+logger = logging.getLogger(__name__)
 
 
 # =====================================================
@@ -9,6 +13,9 @@ from .core import MonthlyLogEntry
 
 def _slope(xs: List[float], ys: List[float]) -> float:
     n = len(xs)
+    if n < 2:
+        return 0.0
+
     x_mean = sum(xs) / n
     y_mean = sum(ys) / n
 
@@ -26,6 +33,7 @@ def _trend_strength(rate_pct: float) -> int:
     """
     Converts percentage change into a 0–100 strength score.
     """
+
     abs_rate = abs(rate_pct)
 
     if abs_rate >= 20:
@@ -50,10 +58,14 @@ def _detect_seasonality(entries: List[MonthlyLogEntry]) -> float:
     """
 
     if len(entries) < 4:
+        logger.debug("Seasonality: insufficient data")
         return 0.0
 
     incomes = np.array([e.income for e in entries])
     diffs = np.diff(incomes)
+
+    if len(diffs) < 2:
+        return 0.0
 
     # Strong seasonality = repeating up/down pattern
     sign_changes = np.sum(np.sign(diffs[:-1]) != np.sign(diffs[1:]))
@@ -68,6 +80,7 @@ def _detect_seasonality(entries: List[MonthlyLogEntry]) -> float:
 
 def income_trend(entries: List[MonthlyLogEntry], months: int = 3) -> Dict[str, Any]:
     if len(entries) < 2:
+        logger.debug("Income trend: insufficient entries")
         return {
             "slope": 0.0,
             "direction": "No trend",
@@ -98,12 +111,15 @@ def income_trend(entries: List[MonthlyLogEntry], months: int = 3) -> Dict[str, A
 
     strength = _trend_strength(rate_pct)
 
-    return {
+    result = {
         "slope": round(slope_val, 2),
         "direction": direction,
         "rate_pct": round(rate_pct, 2),
         "strength": strength
     }
+
+    logger.debug(f"Income trend: {result}")
+    return result
 
 
 # =====================================================
@@ -112,6 +128,7 @@ def income_trend(entries: List[MonthlyLogEntry], months: int = 3) -> Dict[str, A
 
 def income_stability(entries: List[MonthlyLogEntry], months: int = 3) -> float:
     if len(entries) < 2:
+        logger.debug("Income stability: insufficient entries")
         return 0.0
 
     last_entries = entries[-months:] if len(entries) >= months else entries
@@ -121,7 +138,10 @@ def income_stability(entries: List[MonthlyLogEntry], months: int = 3) -> float:
     std = incomes.std()
 
     stability = std / mean if mean > 0 else 0.0
-    return round(stability, 3)
+    stability = round(stability, 3)
+
+    logger.debug(f"Income stability: {stability}")
+    return stability
 
 
 # =====================================================
@@ -132,6 +152,7 @@ def income_forecast(entries: List[MonthlyLogEntry]) -> float:
     """
     Simple linear projection using slope.
     """
+
     if len(entries) < 2:
         return entries[-1].income if entries else 0.0
 
@@ -141,7 +162,9 @@ def income_forecast(entries: List[MonthlyLogEntry]) -> float:
     slope_val = _slope(xs, ys)
     next_month = ys[-1] + slope_val
 
-    return round(next_month, 2)
+    forecast = round(next_month, 2)
+    logger.debug(f"Income forecast: {forecast}")
+    return forecast
 
 
 # =====================================================
@@ -169,7 +192,9 @@ def _income_reliability(stability: float, trend_strength: int, seasonality: floa
     # Seasonality helps predictability
     score += seasonality * 20  # up to 20 points
 
-    return min(100, int(score))
+    score = min(100, int(score))
+    logger.debug(f"Income reliability score: {score}")
+    return score
 
 
 # =====================================================
@@ -209,7 +234,7 @@ def income_summary(entries: List[MonthlyLogEntry], months: int = 3) -> Dict[str,
         trend_direction=trend["direction"]
     )
 
-    return {
+    result = {
         "trend": trend,
         "stability": stability,
         "seasonality": seasonality,
@@ -217,3 +242,6 @@ def income_summary(entries: List[MonthlyLogEntry], months: int = 3) -> Dict[str,
         "reliability_score": reliability,
         "income_health": health
     }
+
+    logger.debug(f"Income summary: {result}")
+    return result

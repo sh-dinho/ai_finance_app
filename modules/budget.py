@@ -2,6 +2,9 @@ import json
 from pathlib import Path
 from typing import Dict, Any
 import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # =====================================================
@@ -9,13 +12,28 @@ import pandas as pd
 # =====================================================
 
 def load_budgets(path: str = "data/budgets.json") -> Dict[str, float]:
+    """
+    Loads budget limits from a JSON file.
+    Returns a dict of category → limit.
+    """
+
+    logger.debug(f"Loading budgets from: {path}")
     file_path = Path(path)
 
     if not file_path.exists():
+        logger.error(f"Budget file not found: {path}")
         raise FileNotFoundError(f"Budget file not found: {path}")
 
     with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+
+    # Validate numeric values
+    for category, value in data.items():
+        if not isinstance(value, (int, float)) or value < 0:
+            logger.warning(f"Invalid budget value for '{category}': {value}")
+
+    logger.info("Budgets loaded successfully")
+    return data
 
 
 # =====================================================
@@ -28,11 +46,19 @@ def calculate_monthly_spending(
     include_total: bool = True
 ) -> Dict[str, float]:
     """
-    Optionally filter by month (YYYY-MM format).
-    Requires 'date', 'category', and 'expenses' columns.
+    Calculates total spending per category.
+    Optionally filters by month (YYYY-MM).
     """
 
-    if df.empty or "category" not in df.columns or "expenses" not in df.columns:
+    logger.debug("Calculating monthly spending")
+
+    if df.empty:
+        logger.warning("df_daily is empty — returning empty spending dict")
+        return {}
+
+    required_cols = {"date", "category", "expenses"}
+    if not required_cols.issubset(df.columns):
+        logger.error(f"Missing required columns: {required_cols - set(df.columns)}")
         return {}
 
     df = df.copy()
@@ -41,9 +67,14 @@ def calculate_monthly_spending(
     df["expenses"] = pd.to_numeric(df["expenses"], errors="coerce").fillna(0)
 
     # Optional month filtering
-    if month and "date" in df.columns:
+    if month:
+        logger.debug(f"Filtering spending for month: {month}")
         df["date"] = pd.to_datetime(df["date"], errors="coerce")
         df = df[df["date"].dt.strftime("%Y-%m") == month]
+
+    if df.empty:
+        logger.warning("No spending data after filtering — returning empty dict")
+        return {}
 
     category_totals = (
         df.groupby("category")["expenses"]
@@ -55,6 +86,7 @@ def calculate_monthly_spending(
     if include_total:
         category_totals["_total_spent"] = round(df["expenses"].sum(), 2)
 
+    logger.debug("Monthly spending calculation complete")
     return category_totals
 
 
@@ -68,22 +100,25 @@ def compare_to_budget(
 ) -> Dict[str, Dict[str, Any]]:
     """
     Compares actual spending to budget limits.
-    Includes handling for categories not in the budget.
+    Handles uncategorized spending.
     """
+
+    logger.debug("Comparing spending to budget")
 
     comparison = {}
 
-    # First handle categories that exist in the budget
+    # Categories in the budget
     for category, limit in budget.items():
         spent = actual.get(category, 0.0)
         remaining = limit - spent
         progress = spent / limit if limit > 0 else 0.0
 
-        status = "Healthy"
         if progress >= 1.0:
             status = "Over Budget"
         elif progress >= 0.85:
             status = "Warning"
+        else:
+            status = "Healthy"
 
         comparison[category] = {
             "spent": round(spent, 2),
@@ -93,7 +128,7 @@ def compare_to_budget(
             "status": status
         }
 
-    # Handle categories NOT in the budget
+    # Categories NOT in the budget
     for category, spent in actual.items():
         if category not in budget and category != "_total_spent":
             comparison[category] = {
@@ -104,11 +139,12 @@ def compare_to_budget(
                 "status": "Uncategorized"
             }
 
-    # Sort by highest progress (overspending first)
+    # Sort by overspending severity
     comparison = dict(
         sorted(comparison.items(), key=lambda x: x[1]["progress"], reverse=True)
     )
 
+    logger.debug("Budget comparison complete")
     return comparison
 
 
@@ -119,10 +155,13 @@ def compare_to_budget(
 def budget_health_score(comparison: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
     """
     Returns overall budget performance score (0–100)
-    with improved severity-based scoring.
+    with severity-based penalties.
     """
 
+    logger.debug("Calculating budget health score")
+
     if not comparison:
+        logger.info("Empty comparison — returning perfect score")
         return {
             "score": 100,
             "over_budget_categories": 0,
@@ -140,10 +179,8 @@ def budget_health_score(comparison: Dict[str, Dict[str, Any]]) -> Dict[str, Any]
 
         if status == "Over Budget":
             over_budget += 1
-
         elif status == "Warning":
             warning += 1
-
         elif status == "Uncategorized":
             uncategorized += 1
 
@@ -152,10 +189,10 @@ def budget_health_score(comparison: Dict[str, Dict[str, Any]]) -> Dict[str, Any]
             excess_ratio = max(0, cat_data["progress"] - 1.0)
             severity_penalty += excess_ratio * 20  # 20 points per 100% overspend
 
-    # Base penalties
     base_penalty = (over_budget * 15) + (warning * 5) + (uncategorized * 3)
-
     score = max(0, 100 - base_penalty - severity_penalty)
+
+    logger.debug("Budget health score calculation complete")
 
     return {
         "score": round(score, 1),

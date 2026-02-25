@@ -1,44 +1,35 @@
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, List, Dict
+import logging
 
-
-# =====================================================
-# Monthly Log Entry (Used by trend, stability, habits)
-# =====================================================
+logger = logging.getLogger(__name__)
 
 @dataclass
 class MonthlyLogEntry:
-    """
-    Represents a single month of financial activity.
-    Used by income trend, stability, habit streaks, etc.
-    """
     month_index: int
     income: float
     expenses: float
     savings: float
     notes: Optional[str] = None
 
-
-# =====================================================
-# Financial Snapshot (Used by FinancialEngine)
-# =====================================================
-
 @dataclass
 class FinancialSnapshot:
-    """
-    Represents a snapshot of a user's financial situation.
-    Used across all financial intelligence modules.
-    """
+    """Represents the user's current state. Ratios are auto-calculated."""
+    monthly_income: float
+    monthly_expenses: float
     savings_rate: float
     emergency_months: float
-    has_high_interest_debt: bool
-    liquid_assets_to_debt: Optional[float]
-    expense_trend: float | str
-    income_stability: float | str
-    income_trend: float | str
-    monthly_expenses: float
-    monthly_income: float
-    emergency_fund: float
-    liquid_assets: float
     investments: float
-    net_worth: float
+    has_high_interest_debt: bool
+    liquid_assets_to_debt: float
+    income_stability: float  # 0.0 to 1.0
+    income_trend: float      # e.g., 1.05 for +5%
+    expense_trend: float     # e.g., 0.95 for -5%
+
+    @property
+    def expense_ratio(self) -> float:
+        return self.monthly_expenses / self.monthly_income if self.monthly_income > 0 else 1.0
+
+    @property
+    def is_investing(self) -> bool:
+        return self.investments > 0

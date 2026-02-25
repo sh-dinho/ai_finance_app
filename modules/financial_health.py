@@ -1,4 +1,7 @@
 from typing import Optional, Dict
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # =====================================================
@@ -13,6 +16,9 @@ def cashflow_score(savings_rate: float) -> int:
     10–25%  → moderate
     25%+    → strong
     """
+
+    logger.debug(f"Calculating cashflow score for savings_rate={savings_rate}")
+
     if savings_rate <= 0:
         return 0
     if savings_rate < 0.10:
@@ -31,6 +37,9 @@ def emergency_score(emergency_months: float) -> int:
     1–3 months   → 60
     3+ months    → 100
     """
+
+    logger.debug(f"Calculating emergency score for emergency_months={emergency_months}")
+
     if emergency_months <= 0:
         return 0
     if emergency_months < 1:
@@ -49,6 +58,12 @@ def debt_health_score(has_high_interest_debt: bool, liquid_to_debt: Optional[flo
     High-interest debt → automatic penalty
     Otherwise, liquidity ratio determines score
     """
+
+    logger.debug(
+        f"Calculating debt health score: high_interest={has_high_interest_debt}, "
+        f"liquid_to_debt={liquid_to_debt}"
+    )
+
     if has_high_interest_debt:
         return 20
 
@@ -69,6 +84,12 @@ def investing_readiness_score(is_investing: bool, emergency_months: float) -> in
     Investing without emergency fund → penalized
     Investing with 3+ months saved → strong
     """
+
+    logger.debug(
+        f"Calculating investing readiness score: is_investing={is_investing}, "
+        f"emergency_months={emergency_months}"
+    )
+
     if not is_investing:
         return 40
     if emergency_months < 3:
@@ -97,6 +118,13 @@ def financial_health_score(
         - Debt Health: 20%
         - Investing Readiness: 10%
     """
+
+    logger.debug(
+        f"Calculating financial health score with subscores: "
+        f"cashflow={cashflow}, savings={savings}, emergency={emergency}, "
+        f"debt={debt}, investing={investing}"
+    )
+
     score = (
         cashflow * 0.25 +
         savings * 0.25 +
@@ -116,7 +144,10 @@ def financial_health_score(
     else:
         status = "Excellent"
 
-    return {
+    result = {
         "score": score,
         "status": status
     }
+
+    logger.debug(f"Financial health score result: {result}")
+    return result

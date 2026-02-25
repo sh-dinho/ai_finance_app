@@ -1,270 +1,129 @@
 import os
-import json
-from pathlib import Path
+import shutil
+import subprocess
+import sys
 
-# =====================================================
-# Helpers
-# =====================================================
-
-def make_dir(path: str):
-    """Create directory if it doesn't exist."""
-    Path(path).mkdir(parents=True, exist_ok=True)
-    print(f"📁 Directory ensured: {path}")
+PROJECT_ROOT = "financial_intelligence_system"
 
 
-def make_file(path: str, content: str = "", overwrite: bool = False):
-    """
-    Create a file safely.
-    - Will not overwrite unless overwrite=True
-    """
-    file_path = Path(path)
-
-    # Ensure parent directory exists
-    file_path.parent.mkdir(parents=True, exist_ok=True)
-
-    if file_path.exists() and not overwrite:
-        print(f"⏩ Skipped existing file: {path}")
-        return
-
-    with open(file_path, "w", encoding="utf-8") as f:
+def write(path, content):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
         f.write(content)
 
-    print(f"📝 File written: {path}")
+
+def clean_project():
+    if os.path.exists(PROJECT_ROOT):
+        print(f"Deleting existing project folder: {PROJECT_ROOT}")
+        shutil.rmtree(PROJECT_ROOT)
+    os.makedirs(PROJECT_ROOT)
+    print(f"Created clean project folder: {PROJECT_ROOT}")
 
 
-def write_json(path: str, content: dict, overwrite: bool = False):
-    """Safely write JSON with indentation."""
-    file_path = Path(path)
-    file_path.parent.mkdir(parents=True, exist_ok=True)
-
-    if file_path.exists() and not overwrite:
-        print(f"⏩ Skipped existing JSON: {path}")
-        return
-
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(content, f, indent=4)
-
-    print(f"📦 JSON populated: {path}")
-
-
-# =====================================================
-# Project Structure
-# =====================================================
-
-project_structure = {
-    "streamlit_app": [
-        "Home.py",
-        "Data_Entry.py",
-        "Spending_Budget.py",
-        "Goals.py",
-        "Insights.py",
-        "ui_simple.py"
-    ],
-    "modules": [
-        "core.py",
-        "category_detector.py",
-        "budget.py",
-        "forecasting.py",
-        "habits.py",
-        "goals.py",
-        "trend_insights.py",
-        "income_insights.py",
-        "fis.py",
-        "stress_and_projection.py"
-    ],
-    "data": [
-        "user_inputs.json",
-        "monthly_log.csv",
-        "budgets.json",
-        "categories.json",
-        "goals.json"
-    ],
-    ".streamlit": [
-        "config.toml"
+def create_structure():
+    folders = [
+        "core",
+        "scoring",
+        "pipeline",
+        "reporting",
+        "data",
+        "scripts",
+        "config",
     ]
-}
 
-root_files = [
-    "requirements.txt",
-    "README.md",
-    ".gitignore"
-]
+    for folder in folders:
+        os.makedirs(os.path.join(PROJECT_ROOT, folder), exist_ok=True)
 
-# =====================================================
-# Create Folders
-# =====================================================
 
-print("\n🚀 Setting up AI Finance App structure...\n")
+def create_files():
+    write(f"{PROJECT_ROOT}/core/models.py", """# models.py
+# (Paste your full models code here)
+""")
 
-for folder in project_structure.keys():
-    make_dir(folder)
+    write(f"{PROJECT_ROOT}/core/snapshot.py", """# snapshot.py
+# (Paste your full FinancialSnapshot implementation here)
+""")
 
-# =====================================================
-# Create Files
-# =====================================================
+    write(f"{PROJECT_ROOT}/scoring/health.py", """# health scoring engine
+""")
 
-for folder, files in project_structure.items():
-    for file in files:
-        make_file(os.path.join(folder, file))
+    write(f"{PROJECT_ROOT}/scoring/habits.py", """# habit scoring engine
+""")
 
-for file in root_files:
-    make_file(file)
+    write(f"{PROJECT_ROOT}/scoring/goals.py", """# goal scoring engine
+""")
 
-# =====================================================
-# Default JSON Data
-# =====================================================
+    write(f"{PROJECT_ROOT}/scoring/composite.py", """# composite scoring engine
+""")
 
-json_data = {
-    "data/user_inputs.json": {
-        "age": 30,
-        "employment_income": 0,
-        "other_income": 0,
-        "annual_expenses": 0,
-        "emergency_fund": 0,
-        "financial_assets": {
-            "cash": 0,
-            "chequing": 0,
-            "savings": 0,
-            "stocks": 0,
-            "crypto": 0,
-            "bonds": 0
-        },
-        "physical_assets": {
-            "car": 0,
-            "home": 0
-        },
-        "liabilities": {
-            "credit_card": {"amount": 0, "rate": 0.19},
-            "loan": {"amount": 0, "rate": 0.05}
-        }
-    },
-    "data/budgets.json": {
-        "Housing": 1800,
-        "Utilities": 250,
-        "Groceries": 600,
-        "Transportation": 200,
-        "Dining": 250,
-        "Shopping": 300,
-        "Health": 150,
-        "Entertainment": 150,
-        "Other": 200
-    },
-    "data/categories.json": {
-        "Housing": ["rent", "mortgage", "property tax", "condo fee"],
-        "Utilities": ["hydro", "electricity", "water", "internet", "wifi", "gas"],
-        "Groceries": ["grocery", "superstore", "loblaws", "food", "market"],
-        "Transportation": ["uber", "lyft", "gasoline", "fuel", "bus", "train"],
-        "Dining": ["restaurant", "coffee", "cafe", "starbucks", "tim hortons"],
-        "Shopping": ["amazon", "clothes", "electronics", "walmart"],
-        "Health": ["pharmacy", "drug", "clinic", "dentist"],
-        "Entertainment": ["netflix", "spotify", "movie", "game"],
-        "Other": []
-    },
-    "data/goals.json": {
-        "Emergency Fund": {"target": 15000, "target_date": "2027-01-01"},
-        "Savings Goal": {"target": 20000, "target_date": "2026-12-31"},
-        "Investment Goal": {"target": 50000, "target_date": "2030-01-01"},
-        "Net Worth Goal": {"target": 100000, "target_date": "2028-01-01"},
-        "Debt Payoff Goal": {"target": 0, "target_date": "2027-06-01"}
-    }
-}
+    write(f"{PROJECT_ROOT}/pipeline/fis_report.py", """from dataclasses import dataclass
+from typing import Dict, Any
 
-for path, content in json_data.items():
-    write_json(path, content)
+@dataclass
+class FISReport:
+    intelligence: Dict[str, Any]
+    insights: Dict[str, Any]
+""")
 
-# =====================================================
-# config.toml
-# =====================================================
+    write(f"{PROJECT_ROOT}/pipeline/pipeline.py", """# FISPipeline orchestrator
+""")
 
-make_file(
-    ".streamlit/config.toml",
-    """
-[theme]
-primaryColor="#4CAF50"
-backgroundColor="#F7F9FB"
-secondaryBackgroundColor="#FFFFFF"
-textColor="#1A1A1A"
-font="sans serif"
-""",
-    overwrite=True
-)
+    write(f"{PROJECT_ROOT}/reporting/report_card.py", """# generate_report_card implementation
+""")
 
-# =====================================================
-# requirements.txt
-# =====================================================
+    write(f"{PROJECT_ROOT}/data/data_loader.py", """# data loader implementation
+""")
 
-make_file(
-    "requirements.txt",
-    """
-streamlit
-pandas
+    write(f"{PROJECT_ROOT}/scripts/email_sender.py", """# email sender implementation
+""")
+
+    write(f"{PROJECT_ROOT}/scripts/run_local.py", """# automated runner script
+""")
+
+    write(f"{PROJECT_ROOT}/app.py", """from pipeline.pipeline import FISPipeline
+from reporting.report_card import generate_report_card
+
+def run_full_fis(bundle):
+    pipeline = FISPipeline()
+    results = pipeline.run(bundle)
+    return generate_report_card({
+        "intelligence_report": results.intelligence,
+        "insights": results.insights
+    })
+""")
+
+    write(f"{PROJECT_ROOT}/config/weights.yaml", """health:
+  weights:
+    cashflow: 0.25
+    emergency: 0.25
+    debt: 0.25
+    investing: 0.25
+""")
+
+    write(f"{PROJECT_ROOT}/requirements.txt", """pandas
 numpy
-python-dateutil
-""",
-    overwrite=True
-)
+""")
 
-# =====================================================
-# .gitignore
-# =====================================================
+    print("All files created successfully.")
 
-make_file(
-    ".gitignore",
-    """
-venv/
-__pycache__/
-*.pyc
-.streamlit/
-.env
-""",
-    overwrite=True
-)
 
-# =====================================================
-# README.md
-# =====================================================
+def create_virtual_env():
+    print("Creating virtual environment...")
+    venv_path = os.path.join(PROJECT_ROOT, "venv")
 
-make_file(
-    "README.md",
-    """
-# AI Finance App
+    subprocess.run([sys.executable, "-m", "venv", venv_path], check=True)
+    print(f"Virtual environment created at: {venv_path}")
 
-A beginner-friendly, AI-powered personal finance dashboard built with Streamlit.
+    pip_path = os.path.join(venv_path, "bin", "pip") if os.name != "nt" else os.path.join(venv_path, "Scripts", "pip.exe")
 
-## Features
-- Daily or monthly data entry
-- Automatic expense categorization
-- Budget tracking
-- Financial goals
-- Stress index
-- Health score
-- Forecasting
-- Habit tracking
-- Multi-page dashboard
+    print("Installing dependencies...")
+    subprocess.run([pip_path, "install", "-r", f"{PROJECT_ROOT}/requirements.txt"], check=True)
+    print("Dependencies installed.")
 
-## Setup
 
-1. Create a virtual environment:
-
-   python -m venv venv
-
-2. Activate it:
-
-   Windows:
-   venv\\Scripts\\activate
-
-   Mac/Linux:
-   source venv/bin/activate
-
-3. Install dependencies:
-
-   pip install -r requirements.txt
-
-4. Run the app:
-
-   streamlit run streamlit_app/Home.py
-""",
-    overwrite=True
-)
-
-print("\n✅ AI Finance App structure is ready.\n")
+if __name__ == "__main__":
+    clean_project()
+    create_structure()
+    create_files()
+    create_virtual_env()
+    print("Project setup complete!")

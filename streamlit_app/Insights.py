@@ -1,10 +1,8 @@
 import streamlit as st
-import pandas as pd
 
-st.title("Insights")
+st.title("🧠 Deep Insights")
 
 if "fis_result" not in st.session_state:
-    st.warning("No FIS report found. Go to Home to initialize.")
     st.stop()
 
 report = st.session_state["fis_result"]["fis_report"]
@@ -12,18 +10,19 @@ report = st.session_state["fis_result"]["fis_report"]
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("Income Insights")
-    st.json(report["income_insights"])
-
-    st.subheader("Trend Insights")
-    st.json(report["trend_insights"])
+    st.subheader("💰 Income Reliability")
+    inc = report["income_insights"]
+    st.metric("Reliability Score", inc["reliability_score"])
+    st.write(f"Health: **{inc['income_health']}**")
+    st.json(inc["trend"])
 
 with col2:
-    st.subheader("Habits")
-    st.json(report["habits"])
+    st.subheader("📉 Discipline & Risk")
+    risk = report["discipline_risk"]
+    st.error(f"Risk Level: {risk['risk_level']}")
+    for factor in risk["risk_factors"]:
+        st.write(f"- {factor}")
 
-    st.subheader("Discipline Risk")
-    st.json(report["discipline_risk"])
-
-st.subheader("Forecast")
-st.json(report["forecast"])
+st.divider()
+st.subheader("🔄 Habit Momentum")
+st.json(report["habits"])

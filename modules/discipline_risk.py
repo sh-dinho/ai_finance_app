@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 from typing import Dict, List, Any, Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # =====================================================
@@ -18,20 +21,7 @@ def calculate_discipline_risk(
     Evaluate financial discipline risk based on spending, savings,
     volatility, and budget adherence.
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Must contain at least one of: income, expenses, savings.
-    budget_comparison : dict, optional
-        Output from your budget comparison engine.
-    savings_decline_window : int
-        Number of months used to detect savings-rate decline.
-    volatility_threshold : float
-        Threshold for expense volatility classification.
-
-    Returns
-    -------
-    dict
+    Returns:
         {
             "risk_score": int (0–100),
             "risk_level": str,
@@ -39,7 +29,10 @@ def calculate_discipline_risk(
         }
     """
 
+    logger.debug("Starting discipline risk evaluation")
+
     if df.empty:
+        logger.warning("Empty dataframe passed to discipline risk engine")
         return _empty_result()
 
     df = df.copy()
@@ -57,6 +50,7 @@ def calculate_discipline_risk(
     # -------------------------------------------------
     if "savings" in df.columns:
         negative_ratio = (df["savings"] < 0).mean()
+        logger.debug(f"Negative savings ratio: {negative_ratio:.2f}")
 
         if negative_ratio > 0.4:
             risk_score += 25
@@ -78,6 +72,8 @@ def calculate_discipline_risk(
             recent = df["savings_rate"].tail(half).mean()
             previous = df["savings_rate"].iloc[-savings_decline_window:-half].mean()
 
+            logger.debug(f"Savings rate trend — previous: {previous:.2f}, recent: {recent:.2f}")
+
             if recent < previous:
                 decline = previous - recent
                 penalty = min(20, decline * 100)
@@ -92,6 +88,8 @@ def calculate_discipline_risk(
         if mean_exp > 0:
             volatility = df["expenses"].std()
             volatility_ratio = volatility / mean_exp
+
+            logger.debug(f"Expense volatility ratio: {volatility_ratio:.2f}")
 
             if volatility_ratio > volatility_threshold:
                 risk_score += 15
@@ -108,6 +106,8 @@ def calculate_discipline_risk(
             if v.get("status") == "Over Budget"
         )
 
+        logger.debug(f"Over-budget categories: {over_budget_count}")
+
         if over_budget_count >= 3:
             risk_score += 20
             risk_factors.append("Multiple categories over budget")
@@ -120,6 +120,8 @@ def calculate_discipline_risk(
     # -------------------------------------------------
     risk_score = min(100, int(risk_score))
     risk_level = _classify_risk(risk_score)
+
+    logger.info(f"Discipline risk evaluation complete — Score: {risk_score}, Level: {risk_level}")
 
     return {
         "risk_score": risk_score,
