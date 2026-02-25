@@ -67,9 +67,9 @@ project_structure = {
         "forecasting.py",
         "habits.py",
         "goals.py",
-        "lifestyle.py",
-        "income_optimizer.py",
-        "health_score.py",
+        "trend_insights.py",
+        "income_insights.py",
+        "fis.py",
         "stress_and_projection.py"
     ],
     "data": [
