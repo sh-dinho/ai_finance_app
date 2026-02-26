@@ -1,0 +1,65 @@
+{
+  "snapshot": {
+    "net_worth": 28450,
+    "cash": 6200,
+    "investments": 21000,
+    "debts": -1750,
+    "last_updated": "2026-03-01"
+  },
+
+  "entries": [
+    { "month": "2025-04", "income": 5200, "expenses": 3450, "savings": 1750 },
+    { "month": "2025-05", "income": 5150, "expenses": 3600, "savings": 1550 },
+    { "month": "2025-06", "income": 5400, "expenses": 3720, "savings": 1680 },
+    { "month": "2025-07", "income": 5300, "expenses": 4100, "savings": 1200 },
+    { "month": "2025-08", "income": 5250, "expenses": 3950, "savings": 1300 },
+    { "month": "2025-09", "income": 5500, "expenses": 3800, "savings": 1700 },
+    { "month": "2025-10", "income": 5600, "expenses": 3900, "savings": 1700 },
+    { "month": "2025-11", "income": 5700, "expenses": 4200, "savings": 1500 },
+    { "month": "2025-12", "income": 5800, "expenses": 5100, "savings": 700 },
+    { "month": "2026-01", "income": 5400, "expenses": 3600, "savings": 1800 },
+    { "month": "2026-02", "income": 5450, "expenses": 3550, "savings": 1900 },
+    { "month": "2026-03", "income": 5500, "expenses": 3700, "savings": 1800 }
+  ],
+
+  "df_daily": [
+    { "date": "2026-01-01", "expense": 95 },
+    { "date": "2026-01-02", "expense": 120 },
+    { "date": "2026-01-03", "expense": 60 },
+    { "date": "2026-01-04", "expense": 40 },
+    { "date": "2026-01-05", "expense": 130 },
+    { "date": "2026-02-01", "expense": 110 },
+    { "date": "2026-02-02", "expense": 75 },
+    { "date": "2026-02-03", "expense": 95 },
+    { "date": "2026-02-04", "expense": 50 },
+    { "date": "2026-02-05", "expense": 140 },
+    { "date": "2026-03-01", "expense": 100 },
+    { "date": "2026-03-02", "expense": 85 },
+    { "date": "2026-03-03", "expense": 120 },
+    { "date": "2026-03-04", "expense": 55 },
+    { "date": "2026-03-05", "expense": 150 }
+  ],
+
+  "goals": {
+    "Emergency Fund": {
+      "target": 15000,
+      "target_date": "2026-12-31"
+    },
+    "Down Payment": {
+      "target": 40000,
+      "target_date": "2028-06-30"
+    },
+    "Vacation": {
+      "target": 3500,
+      "target_date": "2026-08-15"
+    }
+  },
+
+  "current_goal_values": {
+    "Emergency Fund": 6200,
+    "Down Payment": 8500,
+    "Vacation": 1200
+  },
+
+  "monthly_savings": 1800
+}

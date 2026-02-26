@@ -36,7 +36,8 @@ class ConfigLoader:
     """
 
     def __init__(self, base_path: str = None):
-        self.base_path = base_path or os.path.join(os.getcwd(), "financial_intelligence_system", "config")
+        # Correct: use the directory where THIS file lives
+        self.base_path = base_path or os.path.dirname(__file__)
         self._cache: Dict[str, ConfigNamespace] = {}
 
     def _expand_env_vars(self, data: Any) -> Any:

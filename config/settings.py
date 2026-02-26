@@ -4,6 +4,7 @@ from typing import Any
 from .env_loader import load_dotenv
 from .config_loader import config
 
+
 @dataclass
 class Settings:
     weights: Any
@@ -15,8 +16,8 @@ class Settings:
 
     @classmethod
     def load(cls):
-        # Load .env silently
-        env_path = os.path.join(os.getcwd(), "financial_intelligence_system", ".env")
+        # Load .env from the same directory as this file (config/)
+        env_path = os.path.join(os.path.dirname(__file__), ".env")
         load_dotenv(env_path)
 
         return cls(

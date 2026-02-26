@@ -1,4 +1,3 @@
-features:
   enable_forecasting: true
   enable_goal_scoring: true
   enable_habit_scoring: true
