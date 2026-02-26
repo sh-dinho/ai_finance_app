@@ -1,0 +1,13 @@
+health:
+  weights:
+    cashflow: 0.25
+    emergency: 0.25
+    debt: 0.25
+    investing: 0.25
+
+composite:
+  factors:
+    income: 0.20
+    trend: 0.20
+    habits: 0.30
+    goals: 0.30

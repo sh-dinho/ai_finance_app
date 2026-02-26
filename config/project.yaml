@@ -1,0 +1,6 @@
+project:
+  name: "Financial Intelligence System"
+  version: "1.0.0"
+  author: "Sadiq"
+  created: "2026-02-25"
+  environment: "local"

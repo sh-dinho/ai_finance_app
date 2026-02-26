@@ -114,7 +114,7 @@ def create_virtual_env():
     subprocess.run([sys.executable, "-m", "venv", venv_path], check=True)
     print(f"Virtual environment created at: {venv_path}")
 
-    pip_path = os.path.join(venv_path, "bin", "pip") if os.name != "nt" else os.path.join(venv_path, "Scripts", "pip.exe")
+    pip_path = os.path.join(venv_path, "bin", "pip") if os.name != "nt" else os.path.join(venv_path, "../scripts", "pip.exe")
 
     print("Installing dependencies...")
     subprocess.run([pip_path, "install", "-r", f"{PROJECT_ROOT}/requirements.txt"], check=True)

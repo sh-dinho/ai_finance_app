@@ -1,0 +1,9 @@
+data:
+  monthly_entries: "$DATA_MONTHLY_ENTRIES"
+  daily_logs: "$DATA_DAILY_LOGS"
+
+output:
+  reports_folder: "reports/"
+
+automation:
+  log_file: "automation.log"

@@ -1,0 +1,20 @@
+grading:
+  A: 90
+  B: 80
+  C: 70
+  F: 0
+
+status:
+  excellent: 80
+  good: 60
+  fair: 40
+  poor: 0
+
+habits:
+  excellent: 80
+  moderate: 60
+  weak: 0
+
+goals:
+  on_track: 80
+  behind: 50
